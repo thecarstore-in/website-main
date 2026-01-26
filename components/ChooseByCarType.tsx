@@ -35,7 +35,7 @@ export default function BrowseByCarType() {
               />
 
               {/* Overlay */}
-              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute inset-0 bg-black/30" />
 
               {/* Label */}
               <div className="absolute inset-0 flex items-end p-6">

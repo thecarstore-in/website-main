@@ -7,6 +7,8 @@ export const metadata = {
   description: 'Browse our complete inventory of quality used cars',
 };
 
+export const revalidate = 60;
+
 export default async function InventoryPage() {
   const [cars, brands] = await Promise.all([
     getAvailableCars(),
