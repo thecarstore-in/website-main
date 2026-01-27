@@ -1,18 +1,25 @@
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { supabaseAdmin, isValidAdminKey } from '@/lib/supabase-admin';
 import CarListingsTable from './CarListingsTable';
 import AddCarForm from './AddCarForm';
 
+// CRITICAL: Disable all caching for admin panel
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function checkAdminAccess() {
   const headersList = await headers();
-  const forwardedFor = headersList.get('x-forwarded-for');
-  const realIp = headersList.get('x-real-ip');
-  const clientIp = forwardedFor?.split(',')[0] || realIp || 'unknown';
-
-  const allowedIps = process.env.ALLOWED_ADMIN_IPS?.split(',') || [];
+  const cookieStore = await cookies();
   
-  if (!allowedIps.includes(clientIp)) {
+  // Get API key from cookie or header
+  const apiKey = cookieStore.get('admin_api_key')?.value || 
+                 headersList.get('x-admin-key');
+  
+  console.log('API Key present:', !!apiKey); // Debug log
+  
+  if (!isValidAdminKey(apiKey)) {
+    console.log('Access denied - Invalid API key'); // Debug log
     return false;
   }
   
@@ -47,7 +54,7 @@ export default async function AdminPage({
   const params = await searchParams;
   const view = params.view || 'listings';
   const cars = await getAllCars();
-
+  
   return (
     <div className="min-h-screen bg-white text-black pt-10">
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">

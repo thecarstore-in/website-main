@@ -14,31 +14,37 @@ interface SearchParams {
   carType?: string;
 }
 
+// Add revalidation to prevent excessive requests
+export const revalidate = 3600; // Revalidate every hour
+
 export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  // Await searchParams to unwrap the Promise
   const params = await searchParams;
 
   return (
     <main>
       <Hero />
       
+      {/* Load featured cars immediately */}
       <Suspense fallback={<div className="py-20 text-center">Loading featured cars...</div>}>
         <FeaturedCars />
       </Suspense>
 
+      {/* Static components - no data fetching */}
       <ChooseByBrand />
-      <About/>
+      <About />
       <ChooseByCarType />
-      <TrustBar/>
+      <TrustBar />
 
+      {/* Lazy load available cars */}
       <Suspense fallback={<div className="py-20 text-center">Loading cars...</div>}>
         <AvailableCars filters={params} />
       </Suspense>
 
+      {/* Lazy load sold cars */}
       <Suspense fallback={<div className="py-20 text-center">Loading sold cars...</div>}>
         <SoldCars />
       </Suspense>

@@ -162,9 +162,12 @@ export default function CarListingsTable({ cars }: CarListingsTableProps) {
                         <p className="text-black font-medium">
                           {car.manufacturing_year || '-'}
                         </p>
-                        <p className="text-gray-600">
-                          {car.kms_driven ? `${car.kms_driven.toLocaleString()} km` : '-'}
-                        </p>
+                       <p className="text-gray-600">
+  {car.kms_driven
+    ? `${car.kms_driven.toLocaleString('en-IN')} km`
+    : '-'}
+</p>
+
                       </div>
                     </td>
                     <td className="px-4 py-4">

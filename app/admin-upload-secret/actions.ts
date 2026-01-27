@@ -1,12 +1,27 @@
 'use server';
 
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { supabaseAdmin, isValidAdminKey } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+
+/**
+ * Validate admin access before any action
+ */
+async function validateAdminAccess() {
+  const cookieStore = await cookies();
+  const apiKey = cookieStore.get('admin_api_key')?.value;
+  
+  if (!isValidAdminKey(apiKey)) {
+    throw new Error('Unauthorized - Invalid API key');
+  }
+}
 
 /* -----------------------------
    ADD SINGLE CAR
 -------------------------------- */
 export async function addCar(formData: FormData) {
+  await validateAdminAccess();
+  
   const imagesRaw = formData.get('images') as string;
 
   if (!imagesRaw) {
@@ -61,6 +76,8 @@ export async function addCar(formData: FormData) {
    UPDATE CAR
 -------------------------------- */
 export async function updateCar(carId: string, formData: FormData) {
+  await validateAdminAccess();
+  
   const imagesRaw = formData.get('images') as string;
 
   if (!imagesRaw) {
@@ -137,6 +154,8 @@ export async function updateCar(carId: string, formData: FormData) {
    DELETE CAR
 -------------------------------- */
 export async function deleteCar(carId: string) {
+  await validateAdminAccess();
+  
   const { error } = await supabaseAdmin
     .from('cars')
     .delete()
@@ -154,6 +173,8 @@ export async function deleteCar(carId: string) {
    ADD CARS FROM CSV
 -------------------------------- */
 export async function addCarsFromCSV(formData: FormData) {
+  await validateAdminAccess();
+  
   const csvText = formData.get('csv') as string;
 
   if (!csvText) {
@@ -223,6 +244,8 @@ export async function addCarsFromCSV(formData: FormData) {
    Call this from a cron endpoint
 -------------------------------- */
 export async function autoDeleteSoldCars() {
+  await validateAdminAccess();
+  
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 

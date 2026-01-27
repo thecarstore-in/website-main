@@ -1,3 +1,4 @@
+// app/inventory/page.tsx
 import { Suspense } from 'react';
 import InventoryClient from './InventoryClient';
 import { getAvailableCars, getBrands } from '@/lib/supabase';
@@ -7,7 +8,8 @@ export const metadata = {
   description: 'Browse our complete inventory of quality used cars',
 };
 
-export const revalidate = 60;
+// Add revalidation
+export const revalidate = 3600;
 
 export default async function InventoryPage() {
   const [cars, brands] = await Promise.all([

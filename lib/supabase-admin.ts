@@ -8,3 +8,11 @@ export const supabaseAdmin = createClient(
   supabaseUrl,
   serviceRoleKey
 );
+
+export function isValidAdminKey(apiKey: string | null | undefined): boolean {
+  if (!apiKey) return false;
+  
+  // Support multiple keys (one per admin/client)
+  const validKeys = process.env.ADMIN_API_KEYS?.split(',').map(k => k.trim()) || [];
+  return validKeys.includes(apiKey);
+}
