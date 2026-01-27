@@ -11,8 +11,7 @@ const IMAGES = [
   'https://cdn.jsdelivr.net/gh/thecarstore-in/cars/hero/3.webp',
 ];
 
-// 👉 CHANGE THIS NUMBER
-const WHATSAPP_NUMBER = '919999999999'; // countrycode + number (no +)
+const WHATSAPP_NUMBER = '918135843184'; 
 
 export default function Hero() {
   const [current, setCurrent] = useState(0);

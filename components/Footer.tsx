@@ -16,28 +16,31 @@ export default function Footer() {
       {/* Main Footer */}
       <div className="px-6 py-16">
         <div className="max-w-7xl mx-auto">
-          <div className="grid gap-12 md:grid-cols-4 lg:grid-cols-12">
-            {/* Brand - Takes more space */}
-            <div className="md:col-span-2 lg:col-span-4 space-y-6">
-              <div>
+          <div className="grid gap-12 md:grid-cols-4 lg:grid-cols-12 text-center md:text-left">
+
+            {/* Brand */}
+            <div className="md:col-span-2 lg:col-span-4 space-y-6 mx-auto md:mx-0">
+              <div className="flex flex-col items-center md:items-start">
                 <h3 className="text-2xl font-bold tracking-tight text-black mb-3">
                   The Car Store
                 </h3>
                 <div className="w-16 h-1 bg-black rounded-full mb-4"></div>
               </div>
-              
-              <p className="text-sm text-gray-800 leading-relaxed max-w-sm">
+
+              <p className="text-sm text-gray-800 leading-relaxed max-w-sm mx-auto md:mx-0">
                 A curated marketplace for premium pre-owned vehicles, built on
-                transparency, quality, and trust. Your journey to finding the perfect
-                car starts here.
+                transparency, quality, and trust. Your journey to finding the
+                perfect car starts here.
               </p>
 
               {/* Social */}
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-black">Connect With Us</p>
-                <div className="flex gap-3">
+                <p className="text-sm font-semibold text-black">
+                  Connect With Us
+                </p>
+                <div className="flex gap-3 justify-center md:justify-start">
                   <a
-                    href="https://www.instagram.com/thecarstore_guwahati?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                    href="https://www.instagram.com/thecarstore_guwahati"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Instagram"
@@ -74,35 +77,22 @@ export default function Footer() {
               <h4 className="text-sm font-bold text-black uppercase tracking-wider mb-4">
                 Quick Links
               </h4>
-              <nav className="flex flex-col gap-3 text-sm">
-                <Link
-                  href="/#inventory"
-                  className="text-gray-800 hover:text-black transition-colors flex items-center gap-2 group"
-                >
-                  <span className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-black transition-colors"></span>
-                  Browse Inventory
-                </Link>
-                <Link
-                  href="#types"
-                  className="text-gray-800 hover:text-black transition-colors flex items-center gap-2 group"
-                >
-                  <span className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-black transition-colors"></span>
-                  Body Types
-                </Link>
-                <Link
-                  href="#brands"
-                  className="text-gray-800 hover:text-black transition-colors flex items-center gap-2 group"
-                >
-                  <span className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-black transition-colors"></span>
-                  Popular Brands
-                </Link>
-                <Link
-                  href="#about"
-                  className="text-gray-800 hover:text-black transition-colors flex items-center gap-2 group"
-                >
-                  <span className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-black transition-colors"></span>
-                  About Us
-                </Link>
+              <nav className="flex flex-col gap-3 text-sm items-center md:items-start">
+                {[
+                  ['/#inventory', 'Browse Inventory'],
+                  ['#types', 'Body Types'],
+                  ['#brands', 'Popular Brands'],
+                  ['#about', 'About Us'],
+                ].map(([href, label]) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    className="text-gray-800 hover:text-black transition-colors flex items-center gap-2 group"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-black transition-colors"></span>
+                    {label}
+                  </Link>
+                ))}
               </nav>
             </div>
 
@@ -111,56 +101,48 @@ export default function Footer() {
               <h4 className="text-sm font-bold text-black uppercase tracking-wider mb-4">
                 Customer Care
               </h4>
-              
-              <div className="flex flex-col gap-4 text-sm">
+
+              <div className="flex flex-col gap-6 text-sm items-center md:items-start">
+                {/* Phone */}
                 <div className="flex items-start gap-3 text-gray-800">
-  <div className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center">
-    <FaPhoneAlt size={14} />
-  </div>
+                  <div className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center">
+                    <FaPhoneAlt size={14} />
+                  </div>
+                  <div className="space-y-1 text-center md:text-left">
+                    <p className="text-xs text-gray-500">Call Us</p>
+                    <Link href="tel:+918135843184" className="block font-medium">
+                      +91 81358 43184
+                    </Link>
+                    <Link href="tel:+919706713213" className="block font-medium">
+                      +91 97067 13213
+                    </Link>
+                  </div>
+                </div>
 
-  <div className="space-y-1">
-    <p className="text-xs text-gray-500">Call Us</p>
-
-    <Link
-      href="tel:+918135843184"
-      className="block font-medium hover:text-black transition-colors"
-    >
-      +91 81358 43184
-    </Link>
-
-    <Link
-      href="tel:+919706713213"
-      className="block font-medium hover:text-black transition-colors"
-    >
-      +91 97067 13213
-    </Link>
-  </div>
-</div>
-
-
+                {/* Email */}
                 <Link
                   href="mailto:thecarstore.in@gmail.com"
-                  className="flex items-center gap-3 text-gray-800 hover:text-black transition-colors group"
+                  className="flex items-center gap-3 text-gray-800 hover:text-black transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                  <div className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center">
                     <FaEnvelope size={14} />
                   </div>
-                  <div>
+                  <div className="text-center md:text-left">
                     <p className="text-xs text-gray-500">Email Us</p>
                     <p className="font-medium">thecarstore.in@gmail.com</p>
                   </div>
                 </Link>
 
+                {/* Map */}
                 <Link
                   href="https://www.google.com/maps?q=The+Car+Store"
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-gray-800 hover:text-black transition-colors group"
+                  className="flex items-center gap-3 text-gray-800 hover:text-black transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                  <div className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center">
                     <FaMapMarkerAlt size={14} />
                   </div>
-                  <div>
+                  <div className="text-center md:text-left">
                     <p className="text-xs text-gray-500">Visit Us</p>
                     <p className="font-medium">View on Map →</p>
                   </div>
@@ -168,47 +150,37 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Map */}
-            <div className="md:col-span-4 lg:col-span-3 space-y-4">
+            {/* Map Embed */}
+            <div className="md:col-span-4 lg:col-span-3 space-y-4 text-center md:text-left">
               <h4 className="text-sm font-bold text-black uppercase tracking-wider mb-4">
                 Find Us
               </h4>
-              
-              <div className="border-2 border-gray-300 rounded-lg overflow-hidden hover:border-black transition-colors">
+              <div className="border-2 border-gray-300 rounded-lg overflow-hidden max-w-sm mx-auto md:mx-0">
                 <iframe
                   src="https://www.google.com/maps?q=The+Car+Store&output=embed"
                   width="100%"
                   height="200"
                   loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="hover:opacity-90 transition-opacity"
                 />
               </div>
             </div>
+
           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
       <div className="border-t border-gray-300">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="max-w-7xl mx-auto px-6 py-6 text-center md:text-left">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-800">
-            <p>
-              © {currentYear} The Car Store. All rights reserved.
-            </p>
-            
-            <div className="flex items-center gap-6">
-              <Link href="/privacy-policy" className="hover:text-black transition-colors">
-                Privacy Policy
-              </Link>
-              <span className="text-gray-400">•</span>
-              <Link href="/terms-of-service" className="hover:text-black transition-colors">
-                Terms of Service
-              </Link>
-              <span className="text-gray-400">•</span>
-              <Link href="/sitemap" className="hover:text-black transition-colors">
-                Sitemap
-              </Link>
+            <p>© {currentYear} The Car Store. All rights reserved.</p>
+
+            <div className="flex items-center gap-4">
+              <Link href="/privacy-policy">Privacy Policy</Link>
+              <span>•</span>
+              <Link href="/terms-of-service">Terms of Service</Link>
+              <span>•</span>
+              <Link href="/sitemap">Sitemap</Link>
             </div>
           </div>
         </div>
