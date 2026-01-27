@@ -53,9 +53,9 @@ export default function Navbar() {
             <button onClick={() => scrollToSection('types')} className={navItemClass}>
               Types
             </button>
-            <button onClick={() => scrollToSection('inventory')} className={navItemClass}>
-              All Cars
-            </button>
+            <a href="/inventory" className={navItemClass}>
+  Inventory
+</a>
             <button onClick={() => scrollToSection('sold')} className={navItemClass}>
               Sold
             </button>

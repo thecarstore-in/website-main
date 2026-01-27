@@ -3,15 +3,32 @@
 import { useState, useMemo } from 'react';
 import { Car } from '@/lib/types';
 import CarCard from '@/components/CarCard';
+import { useRouter } from 'next/navigation';
 
 interface InventoryClientProps {
   initialCars: Car[];
   availableBrands: string[];
+  carTypes: string[];
+  fuelTypes: string[];
+  transmissions: string[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
 }
 
 type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'kms-low' | 'kms-high' | 'year-new' | 'year-old';
 
-export default function InventoryClient({ initialCars, availableBrands }: InventoryClientProps) {
+export default function InventoryClient({
+  initialCars,
+  availableBrands,
+  carTypes,
+  fuelTypes,
+  transmissions,
+  currentPage,
+  totalPages,
+  totalCount,
+}: InventoryClientProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedCarType, setSelectedCarType] = useState('');
@@ -21,25 +38,9 @@ export default function InventoryClient({ initialCars, availableBrands }: Invent
   const [yearRange, setYearRange] = useState({ min: '', max: '' });
   const [kmsRange, setKmsRange] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false); // CHANGED TO FALSE
 
-  // Extract unique values for filters
-  const carTypes = useMemo(() => 
-    [...new Set(initialCars.map(c => c.car_type).filter((t): t is string => Boolean(t)))].sort(),
-    [initialCars]
-  );
-  
-  const fuelTypes = useMemo(() => 
-    [...new Set(initialCars.map(c => c.fuel_type).filter((f): f is string => Boolean(f)))].sort(),
-    [initialCars]
-  );
-  
-  const transmissions = useMemo(() => 
-    [...new Set(initialCars.map(c => c.transmission).filter((t): t is string => Boolean(t)))].sort(),
-    [initialCars]
-  );
-
-  // Filter and sort cars
+  // Client-side filtering for current page results
   const filteredCars = useMemo(() => {
     let filtered = initialCars.filter(car => {
       // Search query
@@ -149,13 +150,22 @@ export default function InventoryClient({ initialCars, availableBrands }: Invent
     kmsRange.max
   ].filter(Boolean).length;
 
+  const handlePageChange = (page: number) => {
+    if (page === 1) {
+      router.push('/inventory');
+    } else {
+      router.push(`/inventory?page=${page}`);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 text-black">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Our Inventory</h1>
         <p className="text-gray-600">
-          Browse {initialCars.length} available vehicles
+          Browse {totalCount} available vehicles
         </p>
       </div>
 
@@ -340,7 +350,7 @@ export default function InventoryClient({ initialCars, availableBrands }: Invent
       {/* Results Header with Sort */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <p className="text-gray-600">
-          Showing <span className="font-semibold text-black">{filteredCars.length}</span> {filteredCars.length === 1 ? 'vehicle' : 'vehicles'}
+          Showing <span className="font-semibold text-black">{filteredCars.length}</span> of <span className="font-semibold text-black">{totalCount}</span> {totalCount === 1 ? 'vehicle' : 'vehicles'}
         </p>
         
         <div className="flex items-center gap-2">
@@ -364,11 +374,84 @@ export default function InventoryClient({ initialCars, availableBrands }: Invent
 
       {/* Car Grid */}
       {filteredCars.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCars.map((car) => (
-            <CarCard key={car.id} car={car} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCars.map((car) => (
+              <CarCard key={car.id} car={car} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-12 flex items-center justify-center gap-2">
+              {/* Previous Button */}
+              {currentPage > 1 && (
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                >
+                  ← Previous
+                </button>
+              )}
+
+              {/* Page Numbers */}
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  // Show first page, last page, current page, and pages around current
+                  const showPage =
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    (pageNum >= currentPage - 2 && pageNum <= currentPage + 2);
+
+                  const showEllipsis =
+                    (pageNum === 2 && currentPage > 4) ||
+                    (pageNum === totalPages - 1 && currentPage < totalPages - 3);
+
+                  if (showEllipsis) {
+                    return (
+                      <span key={pageNum} className="px-2 py-2 text-gray-400">
+                        ...
+                      </span>
+                    );
+                  }
+
+                  if (!showPage) {
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-4 py-2 font-medium rounded-lg transition-colors ${
+                        pageNum === currentPage
+                          ? 'bg-black text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Button */}
+              {currentPage < totalPages && (
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                >
+                  Next →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Results Info */}
+          <div className="mt-6 text-center text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </div>
+        </>
       ) : (
         <div className="text-center py-20 bg-white border border-gray-200">
           <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

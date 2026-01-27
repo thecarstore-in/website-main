@@ -2,14 +2,20 @@
 
 import { useState } from 'react';
 import { Car } from '@/lib/types';
-import EditCarModal from './EditCarModal';
+
+interface Stats {
+  total: number;
+  available: number;
+  sold: number;
+  featured: number;
+}
 
 interface CarListingsTableProps {
   cars: Car[];
+  stats: Stats;
 }
 
-export default function CarListingsTable({ cars }: CarListingsTableProps) {
-  const [editingCar, setEditingCar] = useState<Car | null>(null);
+export default function CarListingsTable({ cars, stats }: CarListingsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSold, setFilterSold] = useState<'all' | 'available' | 'sold'>('all');
 
@@ -49,7 +55,7 @@ export default function CarListingsTable({ cars }: CarListingsTableProps) {
     <>
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">All Car Listings ({filteredCars.length})</h2>
+          <h2 className="text-2xl font-bold">All Car Listings ({stats.total})</h2>
           
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <input
@@ -76,24 +82,24 @@ export default function CarListingsTable({ cars }: CarListingsTableProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">Total Cars</p>
-            <p className="text-2xl font-bold text-black">{cars.length}</p>
+            <p className="text-2xl font-bold text-black">{stats.total}</p>
           </div>
           <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
             <p className="text-xs text-green-700 mb-1">Available</p>
             <p className="text-2xl font-bold text-green-700">
-              {cars.filter(c => !c.is_sold).length}
+              {stats.available}
             </p>
           </div>
           <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
             <p className="text-xs text-red-700 mb-1">Sold</p>
             <p className="text-2xl font-bold text-red-700">
-              {cars.filter(c => c.is_sold).length}
+              {stats.sold}
             </p>
           </div>
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
             <p className="text-xs text-blue-700 mb-1">Featured</p>
             <p className="text-2xl font-bold text-blue-700">
-              {cars.filter(c => c.is_featured).length}
+              {stats.featured}
             </p>
           </div>
         </div>
@@ -162,12 +168,11 @@ export default function CarListingsTable({ cars }: CarListingsTableProps) {
                         <p className="text-black font-medium">
                           {car.manufacturing_year || '-'}
                         </p>
-                       <p className="text-gray-600">
-  {car.kms_driven
-    ? `${car.kms_driven.toLocaleString('en-IN')} km`
-    : '-'}
-</p>
-
+                        <p className="text-gray-600">
+                          {car.kms_driven
+                            ? `${car.kms_driven.toLocaleString('en-IN')} km`
+                            : '-'}
+                        </p>
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -199,12 +204,12 @@ export default function CarListingsTable({ cars }: CarListingsTableProps) {
                       </p>
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <button
-                        onClick={() => setEditingCar(car)}
-                        className="px-4 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
+                      <a
+                        href={`/admin-upload-secret?view=edit&id=${car.id}`}
+                        className="inline-block px-4 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
                       >
                         Edit
-                      </button>
+                      </a>
                     </td>
                   </tr>
                 ))
@@ -213,13 +218,6 @@ export default function CarListingsTable({ cars }: CarListingsTableProps) {
           </table>
         </div>
       </div>
-
-      {editingCar && (
-        <EditCarModal
-          car={editingCar}
-          onClose={() => setEditingCar(null)}
-        />
-      )}
     </>
   );
 }
