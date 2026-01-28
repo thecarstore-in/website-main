@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Car } from '@/lib/types';
 
 interface CarCardProps {
@@ -13,6 +16,8 @@ export default function CarCard({
   isSold = false,
   theme = 'light',
 }: CarCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price on request';
     return new Intl.NumberFormat('en-IN', {
@@ -29,23 +34,38 @@ export default function CarCard({
 
   const isDark = theme === 'dark';
 
+  // Hover image logic
+  const mainImage = car.images?.[0];
+  const hoverImage = car.images?.[1];
+  const displayImage = isHovered && hoverImage ? hoverImage : mainImage;
+
   return (
     <Link href={`/car/${car.id}`}>
       <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={`
-          overflow-hidden cursor-pointer transition-all rounded-2xl
+          group overflow-hidden cursor-pointer rounded-2xl
+          transition-all duration-300 ease-out
           ${isDark ? 'border border-gray-100 bg-black text-gray-100' : 'border border-black bg-white text-black'}
-          ${isSold ? 'opacity-50' : 'hover:shadow-lg'}
+          ${isSold ? 'opacity-50' : 'hover:-translate-y-1 hover:shadow-xl'}
         `}
       >
         {/* Image */}
-        <div className={`relative h-64 w-full ${isDark ? 'bg-neutral-900' : 'bg-gray-100'}`}>
+        <div
+          className={`relative h-64 w-full overflow-hidden ${
+            isDark ? 'bg-neutral-900' : 'bg-gray-100'
+          }`}
+        >
           <Image
-            src={car.images[0]}
+            src={displayImage}
             alt={`${car.brand} ${car.model}`}
             fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className={`
+              object-cover transition-transform duration-500 ease-out
+              group-hover:scale-105
+            `}
             loading="lazy"
           />
 
@@ -72,28 +92,34 @@ export default function CarCard({
 
           <div className="grid grid-cols-2 gap-3 mb-6 text-sm">
             {car.manufacturing_year && (
-              <Spec label="Year" value={car.manufacturing_year} dark={isDark} />
+              <Spec label="Year" value={car.manufacturing_year} />
             )}
             {car.fuel_type && (
-              <Spec label="Fuel" value={car.fuel_type} dark={isDark} />
+              <Spec label="Fuel" value={car.fuel_type} />
             )}
             {car.kms_driven !== null && (
-              <Spec label="KM" value={formatKms(car.kms_driven)} dark={isDark} />
+              <Spec label="KM" value={formatKms(car.kms_driven)} />
             )}
             {car.owner_count !== null && (
-              <Spec label="Owners" value={car.owner_count} dark={isDark} />
+              <Spec label="Owners" value={car.owner_count} />
             )}
             {car.transmission && (
-              <Spec label="Trans" value={car.transmission} dark={isDark} />
+              <Spec label="Trans" value={car.transmission} />
             )}
-            {car.color && (
-              <Spec label="Color" value={car.color} dark={isDark} />
-            )}
+            {car.color && <Spec label="Color" value={car.color} />}
           </div>
 
-          <div className={`pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div
+            className={`pt-4 border-t ${
+              isDark ? 'border-gray-700' : 'border-gray-200'
+            }`}
+          >
             <div className="flex items-baseline justify-between">
-              <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+              <span
+                className={`${
+                  isDark ? 'text-gray-400' : 'text-gray-600'
+                } text-sm`}
+              >
                 Expected Price
               </span>
               <span className="text-2xl font-bold">
@@ -108,22 +134,12 @@ export default function CarCard({
 }
 
 /* -----------------------------
-   Small helper for specs
+   Spec helper
 -------------------------------- */
-function Spec({
-  label,
-  value,
-  dark,
-}: {
-  label: string;
-  value: string | number;
-  dark: boolean;
-}) {
+function Spec({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className={dark ? 'text-gray-500' : 'text-gray-500'}>
-        {label}:
-      </span>
+      <span className="text-gray-500">{label}:</span>
       <span className="font-medium">{value}</span>
     </div>
   );

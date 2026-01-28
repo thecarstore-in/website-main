@@ -42,7 +42,7 @@ export default function ImageGallery({ images, carName, isSold }: ImageGalleryPr
           <>
             <button
               onClick={() => setSelectedImage(prev => (prev === 0 ? images.length - 1 : prev - 1))}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+              className="text-black absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
               aria-label="Previous image"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@ export default function ImageGallery({ images, carName, isSold }: ImageGalleryPr
             </button>
             <button
               onClick={() => setSelectedImage(prev => (prev === images.length - 1 ? 0 : prev + 1))}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+              className="text-black absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
               aria-label="Next image"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

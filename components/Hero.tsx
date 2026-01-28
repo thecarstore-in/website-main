@@ -75,7 +75,7 @@ export default function Hero() {
               href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hi%20I%20am%20interested%20in%20your%20cars`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 bg-white text-black px-8 py-4 text-base font-bold tracking-wide hover:bg-gray-200 transition-all min-w-[240px]"
+              className="hover:rounded-2xl inline-flex items-center justify-center gap-3 bg-white text-black px-8 py-4 text-base font-bold tracking-wide hover:bg-gray-200 transition-all min-w-[240px]"
             >
               <FaWhatsapp size={20} />
               Contact on WhatsApp
@@ -83,7 +83,7 @@ export default function Hero() {
 
             <Link
               href="/inventory"
-              className="inline-flex items-center justify-center gap-3 border-2 border-white text-white px-8 py-4 text-base font-bold tracking-wide hover:bg-white hover:text-black transition-all min-w-[240px]"
+              className="hover:rounded-2xl inline-flex items-center justify-center gap-3 border-2 border-white text-white px-8 py-4 text-base font-bold tracking-wide hover:bg-white hover:text-black transition-all min-w-[240px]"
             >
               Browse Inventory
             </Link>
@@ -108,7 +108,7 @@ export default function Hero() {
       {/* Chevron → ROUTES (NO SCROLL) */}
       <Link
         href="/inventory"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce"
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 animate-bounce"
         aria-label="Go to inventory page"
       >
         <FaChevronDown className="text-white" size={24} />

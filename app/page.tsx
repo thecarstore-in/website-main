@@ -8,6 +8,7 @@ import SoldCars from '@/components/SoldCars';
 import Footer from '@/components/Footer';
 import About from '@/components/About';
 import TrustBar from '@/components/TrustBar';
+import WhatsAppChat from '@/components/WhatsAppChat';
 
 interface SearchParams {
   brand?: string;
@@ -50,6 +51,7 @@ export default async function Home({
       </Suspense>
 
       <Footer />
+      <WhatsAppChat/>
     </main>
   );
 }
