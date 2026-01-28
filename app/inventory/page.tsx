@@ -13,23 +13,111 @@ export const revalidate = 3600;
 
 const ITEMS_PER_PAGE = 12;
 
-async function getPaginatedCars(page: number = 1) {
+interface FilterParams {
+  page?: string;
+  search?: string;
+  brand?: string;
+  carType?: string;
+  fuelType?: string;
+  transmission?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  minYear?: string;
+  maxYear?: string;
+  minKms?: string;
+  maxKms?: string;
+  sortBy?: string;
+}
+
+async function getPaginatedCars(params: FilterParams) {
+  const page = parseInt(params.page || '1', 10);
   const from = (page - 1) * ITEMS_PER_PAGE;
   const to = from + ITEMS_PER_PAGE - 1;
 
-  // Get total count
-  const { count } = await supabaseAdmin
+  // Start building query
+  let query = supabaseAdmin
     .from('cars')
-    .select('*', { count: 'exact', head: true })
+    .select('*', { count: 'exact' })
     .eq('is_sold', false);
 
-  // Get paginated data
-  const { data: cars, error } = await supabaseAdmin
-    .from('cars')
-    .select('*')
-    .eq('is_sold', false)
-    .order('created_at', { ascending: false })
-    .range(from, to);
+  // Apply filters
+  if (params.search) {
+    const searchLower = params.search.toLowerCase();
+    query = query.or(`brand.ilike.%${searchLower}%,model.ilike.%${searchLower}%,variant.ilike.%${searchLower}%,color.ilike.%${searchLower}%`);
+  }
+
+  if (params.brand) {
+    query = query.ilike('brand', params.brand);
+  }
+
+  if (params.carType) {
+    query = query.ilike('car_type', params.carType);
+  }
+
+  if (params.fuelType) {
+    query = query.ilike('fuel_type', params.fuelType);
+  }
+
+  if (params.transmission) {
+    query = query.ilike('transmission', params.transmission);
+  }
+
+  if (params.minPrice) {
+    query = query.gte('expected_price', parseInt(params.minPrice));
+  }
+
+  if (params.maxPrice) {
+    query = query.lte('expected_price', parseInt(params.maxPrice));
+  }
+
+  if (params.minYear) {
+    query = query.gte('manufacturing_year', parseInt(params.minYear));
+  }
+
+  if (params.maxYear) {
+    query = query.lte('manufacturing_year', parseInt(params.maxYear));
+  }
+
+  if (params.minKms) {
+    query = query.gte('kms_driven', parseInt(params.minKms));
+  }
+
+  if (params.maxKms) {
+    query = query.lte('kms_driven', parseInt(params.maxKms));
+  }
+
+  // Apply sorting
+  const sortBy = params.sortBy || 'newest';
+  switch (sortBy) {
+    case 'oldest':
+      query = query.order('created_at', { ascending: true });
+      break;
+    case 'price-low':
+      query = query.order('expected_price', { ascending: true, nullsFirst: false });
+      break;
+    case 'price-high':
+      query = query.order('expected_price', { ascending: false, nullsFirst: false });
+      break;
+    case 'kms-low':
+      query = query.order('kms_driven', { ascending: true, nullsFirst: false });
+      break;
+    case 'kms-high':
+      query = query.order('kms_driven', { ascending: false, nullsFirst: false });
+      break;
+    case 'year-new':
+      query = query.order('manufacturing_year', { ascending: false, nullsFirst: false });
+      break;
+    case 'year-old':
+      query = query.order('manufacturing_year', { ascending: true, nullsFirst: false });
+      break;
+    default: // newest
+      query = query.order('created_at', { ascending: false });
+  }
+
+  // Apply pagination
+  query = query.range(from, to);
+
+  const { data: cars, error, count } = await query;
 
   if (error) {
     console.error('Error fetching cars:', error);
@@ -82,13 +170,13 @@ async function getFilterOptions() {
 export default async function InventoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<FilterParams>;
 }) {
   const params = await searchParams;
   const currentPage = parseInt(params.page || '1', 10);
 
   const [{ cars, totalCount, totalPages }, brands, filterOptions] = await Promise.all([
-    getPaginatedCars(currentPage),
+    getPaginatedCars(params),
     getBrands(),
     getFilterOptions(),
   ]);
@@ -111,6 +199,7 @@ export default async function InventoryPage({
           currentPage={currentPage}
           totalPages={totalPages}
           totalCount={totalCount}
+          initialFilters={params}
         />
       </Suspense>
     </div>

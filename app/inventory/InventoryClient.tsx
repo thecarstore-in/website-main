@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Car } from '@/lib/types';
 import CarCard from '@/components/CarCard';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface InventoryClientProps {
   initialCars: Car[];
@@ -14,6 +14,7 @@ interface InventoryClientProps {
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  initialFilters: any;
 }
 
 type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'kms-low' | 'kms-high' | 'year-new' | 'year-old';
@@ -27,102 +28,72 @@ export default function InventoryClient({
   currentPage,
   totalPages,
   totalCount,
+  initialFilters,
 }: InventoryClientProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedCarType, setSelectedCarType] = useState('');
-  const [selectedFuelType, setSelectedFuelType] = useState('');
-  const [selectedTransmission, setSelectedTransmission] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [yearRange, setYearRange] = useState({ min: '', max: '' });
-  const [kmsRange, setKmsRange] = useState({ min: '', max: '' });
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [showFilters, setShowFilters] = useState(false); // CHANGED TO FALSE
+  const searchParams = useSearchParams();
+  
+  const [searchQuery, setSearchQuery] = useState(initialFilters.search || '');
+  const [selectedBrand, setSelectedBrand] = useState(initialFilters.brand || '');
+  const [selectedCarType, setSelectedCarType] = useState(initialFilters.carType || '');
+  const [selectedFuelType, setSelectedFuelType] = useState(initialFilters.fuelType || '');
+  const [selectedTransmission, setSelectedTransmission] = useState(initialFilters.transmission || '');
+  const [priceRange, setPriceRange] = useState({ 
+    min: initialFilters.minPrice || '', 
+    max: initialFilters.maxPrice || '' 
+  });
+  const [yearRange, setYearRange] = useState({ 
+    min: initialFilters.minYear || '', 
+    max: initialFilters.maxYear || '' 
+  });
+  const [kmsRange, setKmsRange] = useState({ 
+    min: initialFilters.minKms || '', 
+    max: initialFilters.maxKms || '' 
+  });
+  const [sortBy, setSortBy] = useState<SortOption>((initialFilters.sortBy as SortOption) || 'newest');
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Client-side filtering for current page results
-  const filteredCars = useMemo(() => {
-    let filtered = initialCars.filter(car => {
-      // Search query
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const searchableText = `${car.brand} ${car.model} ${car.variant || ''} ${car.color || ''}`.toLowerCase();
-        if (!searchableText.includes(query)) return false;
-      }
+  // Build URL with filters
+  const buildFilterURL = () => {
+    const params = new URLSearchParams();
+    
+    if (searchQuery) params.set('search', searchQuery);
+    if (selectedBrand) params.set('brand', selectedBrand);
+    if (selectedCarType) params.set('carType', selectedCarType);
+    if (selectedFuelType) params.set('fuelType', selectedFuelType);
+    if (selectedTransmission) params.set('transmission', selectedTransmission);
+    if (priceRange.min) params.set('minPrice', priceRange.min);
+    if (priceRange.max) params.set('maxPrice', priceRange.max);
+    if (yearRange.min) params.set('minYear', yearRange.min);
+    if (yearRange.max) params.set('maxYear', yearRange.max);
+    if (kmsRange.min) params.set('minKms', kmsRange.min);
+    if (kmsRange.max) params.set('maxKms', kmsRange.max);
+    if (sortBy !== 'newest') params.set('sortBy', sortBy);
+    
+    const queryString = params.toString();
+    return queryString ? `/inventory?${queryString}` : '/inventory';
+  };
 
-      // Brand filter
-      if (selectedBrand && car.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
-        return false;
-      }
+  // Apply filters - updates URL which triggers server-side filtering
+  const applyFilters = () => {
+    const url = buildFilterURL();
+    router.push(url);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-      // Car type filter
-      if (selectedCarType && car.car_type?.toLowerCase() !== selectedCarType.toLowerCase()) {
-        return false;
-      }
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      applyFilters();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-      // Fuel type filter
-      if (selectedFuelType && car.fuel_type?.toLowerCase() !== selectedFuelType.toLowerCase()) {
-        return false;
-      }
-
-      // Transmission filter
-      if (selectedTransmission && car.transmission?.toLowerCase() !== selectedTransmission.toLowerCase()) {
-        return false;
-      }
-
-      // Price range
-      if (priceRange.min && car.expected_price && car.expected_price < parseInt(priceRange.min)) {
-        return false;
-      }
-      if (priceRange.max && car.expected_price && car.expected_price > parseInt(priceRange.max)) {
-        return false;
-      }
-
-      // Year range
-      if (yearRange.min && car.manufacturing_year && car.manufacturing_year < parseInt(yearRange.min)) {
-        return false;
-      }
-      if (yearRange.max && car.manufacturing_year && car.manufacturing_year > parseInt(yearRange.max)) {
-        return false;
-      }
-
-      // Kms range
-      if (kmsRange.min && car.kms_driven && car.kms_driven < parseInt(kmsRange.min)) {
-        return false;
-      }
-      if (kmsRange.max && car.kms_driven && car.kms_driven > parseInt(kmsRange.max)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // Sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'price-low':
-          return (a.expected_price || 0) - (b.expected_price || 0);
-        case 'price-high':
-          return (b.expected_price || 0) - (a.expected_price || 0);
-        case 'kms-low':
-          return (a.kms_driven || 0) - (b.kms_driven || 0);
-        case 'kms-high':
-          return (b.kms_driven || 0) - (a.kms_driven || 0);
-        case 'year-new':
-          return (b.manufacturing_year || 0) - (a.manufacturing_year || 0);
-        case 'year-old':
-          return (a.manufacturing_year || 0) - (b.manufacturing_year || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }, [initialCars, searchQuery, selectedBrand, selectedCarType, selectedFuelType, selectedTransmission, priceRange, yearRange, kmsRange, sortBy]);
+  // Apply filters when any filter changes (except search which is debounced)
+  const handleFilterChange = () => {
+    applyFilters();
+  };
 
   const resetFilters = () => {
     setSearchQuery('');
@@ -134,6 +105,7 @@ export default function InventoryClient({
     setYearRange({ min: '', max: '' });
     setKmsRange({ min: '', max: '' });
     setSortBy('newest');
+    router.push('/inventory');
   };
 
   const activeFilterCount = [
@@ -151,11 +123,16 @@ export default function InventoryClient({
   ].filter(Boolean).length;
 
   const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
     if (page === 1) {
-      router.push('/inventory');
+      params.delete('page');
     } else {
-      router.push(`/inventory?page=${page}`);
+      params.set('page', page.toString());
     }
+    
+    const queryString = params.toString();
+    const url = queryString ? `/inventory?${queryString}` : '/inventory';
+    router.push(url);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -206,16 +183,19 @@ export default function InventoryClient({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Brand */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Brand Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Brand
               </label>
               <select
                 value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
+                onChange={(e) => {
+                  setSelectedBrand(e.target.value);
+                  setTimeout(handleFilterChange, 0);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
                 <option value="">All Brands</option>
                 {availableBrands.map(brand => (
@@ -224,15 +204,18 @@ export default function InventoryClient({
               </select>
             </div>
 
-            {/* Car Type */}
+            {/* Car Type Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Body Type
+                Car Type
               </label>
               <select
                 value={selectedCarType}
-                onChange={(e) => setSelectedCarType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
+                onChange={(e) => {
+                  setSelectedCarType(e.target.value);
+                  setTimeout(handleFilterChange, 0);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
                 <option value="">All Types</option>
                 {carTypes.map(type => (
@@ -241,34 +224,40 @@ export default function InventoryClient({
               </select>
             </div>
 
-            {/* Fuel Type */}
+            {/* Fuel Type Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Fuel Type
               </label>
               <select
                 value={selectedFuelType}
-                onChange={(e) => setSelectedFuelType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
+                onChange={(e) => {
+                  setSelectedFuelType(e.target.value);
+                  setTimeout(handleFilterChange, 0);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
-                <option value="">All Fuels</option>
+                <option value="">All Fuel Types</option>
                 {fuelTypes.map(fuel => (
                   <option key={fuel} value={fuel}>{fuel}</option>
                 ))}
               </select>
             </div>
 
-            {/* Transmission */}
+            {/* Transmission Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Transmission
               </label>
               <select
                 value={selectedTransmission}
-                onChange={(e) => setSelectedTransmission(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
+                onChange={(e) => {
+                  setSelectedTransmission(e.target.value);
+                  setTimeout(handleFilterChange, 0);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
-                <option value="">All Types</option>
+                <option value="">All Transmissions</option>
                 {transmissions.map(trans => (
                   <option key={trans} value={trans}>{trans}</option>
                 ))}
@@ -286,6 +275,7 @@ export default function InventoryClient({
                   placeholder="Min"
                   value={priceRange.min || ''}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
                 <input
@@ -293,6 +283,7 @@ export default function InventoryClient({
                   placeholder="Max"
                   value={priceRange.max || ''}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
               </div>
@@ -309,6 +300,7 @@ export default function InventoryClient({
                   placeholder="Min"
                   value={yearRange.min || ''}
                   onChange={(e) => setYearRange(prev => ({ ...prev, min: e.target.value }))}
+                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
                 <input
@@ -316,6 +308,7 @@ export default function InventoryClient({
                   placeholder="Max"
                   value={yearRange.max || ''}
                   onChange={(e) => setYearRange(prev => ({ ...prev, max: e.target.value }))}
+                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
               </div>
@@ -332,6 +325,7 @@ export default function InventoryClient({
                   placeholder="Min"
                   value={kmsRange.min || ''}
                   onChange={(e) => setKmsRange(prev => ({ ...prev, min: e.target.value }))}
+                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
                 <input
@@ -339,6 +333,7 @@ export default function InventoryClient({
                   placeholder="Max"
                   value={kmsRange.max || ''}
                   onChange={(e) => setKmsRange(prev => ({ ...prev, max: e.target.value }))}
+                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
               </div>
@@ -350,14 +345,17 @@ export default function InventoryClient({
       {/* Results Header with Sort */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <p className="text-gray-600">
-          Showing <span className="font-semibold text-black">{filteredCars.length}</span> of <span className="font-semibold text-black">{totalCount}</span> {totalCount === 1 ? 'vehicle' : 'vehicles'}
+          Showing <span className="font-semibold text-black">{initialCars.length}</span> of <span className="font-semibold text-black">{totalCount}</span> {totalCount === 1 ? 'vehicle' : 'vehicles'}
         </p>
         
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600">Sort by:</label>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            onChange={(e) => {
+              setSortBy(e.target.value as SortOption);
+              setTimeout(handleFilterChange, 0);
+            }}
             className="px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
           >
             <option value="newest">Newest First</option>
@@ -373,10 +371,10 @@ export default function InventoryClient({
       </div>
 
       {/* Car Grid */}
-      {filteredCars.length > 0 ? (
+      {initialCars.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCars.map((car) => (
+            {initialCars.map((car) => (
               <CarCard key={car.id} car={car} />
             ))}
           </div>
