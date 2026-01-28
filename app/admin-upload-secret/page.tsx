@@ -47,11 +47,11 @@ async function getPaginatedCars(page: number = 1) {
     supabaseAdmin
       .from('cars')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'available'),
+      .eq('is_sold', false),
     supabaseAdmin
       .from('cars')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'sold'),
+      .eq('is_sold', true),
     supabaseAdmin
       .from('cars')
       .select('*', { count: 'exact', head: true })

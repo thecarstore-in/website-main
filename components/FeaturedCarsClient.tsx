@@ -10,8 +10,24 @@ export default function FeaturedCarsClient({ cars }: { cars: Car[] }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is typical tablet/mobile breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
+    // Skip setting up horizontal scroll on mobile
+    if (isMobile) return;
+
     let scrollTimeout: NodeJS.Timeout;
 
     const handleScroll = (e: WheelEvent) => {
@@ -65,7 +81,7 @@ export default function FeaturedCarsClient({ cars }: { cars: Car[] }) {
       window.removeEventListener('wheel', handleScroll, { capture: true });
       clearTimeout(scrollTimeout);
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <section 

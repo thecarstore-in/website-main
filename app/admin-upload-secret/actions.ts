@@ -3,6 +3,7 @@
 import { supabaseAdmin, isValidAdminKey } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 /**
  * Validate admin access before any action
@@ -70,6 +71,7 @@ export async function addCar(formData: FormData) {
 
   revalidatePath('/');
   revalidatePath('/admin-upload-secret');
+  redirect('/admin-upload-secret?view=listings');
 }
 
 /* -----------------------------
@@ -148,6 +150,7 @@ export async function updateCar(carId: string, formData: FormData) {
   revalidatePath('/');
   revalidatePath('/admin-upload-secret');
   revalidatePath(`/car/${carId}`);
+  redirect('/admin-upload-secret?view=listings');
 }
 
 /* -----------------------------
@@ -167,6 +170,7 @@ export async function deleteCar(carId: string) {
 
   revalidatePath('/');
   revalidatePath('/admin-upload-secret');
+  redirect('/admin-upload-secret?view=listings');
 }
 
 /* -----------------------------
@@ -237,6 +241,7 @@ export async function addCarsFromCSV(formData: FormData) {
 
   revalidatePath('/');
   revalidatePath('/admin-upload-secret');
+  redirect('/admin-upload-secret?view=listings');
 }
 
 /* -----------------------------

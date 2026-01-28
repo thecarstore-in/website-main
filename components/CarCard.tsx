@@ -47,15 +47,17 @@ export default function CarCard({
         className={`
           group overflow-hidden cursor-pointer rounded-2xl
           transition-all duration-300 ease-out
+          h-full flex flex-col
           ${isDark ? 'border border-gray-100 bg-black text-gray-100' : 'border border-black bg-white text-black'}
           ${isSold ? 'opacity-50' : 'hover:-translate-y-1 hover:shadow-xl'}
         `}
       >
         {/* Image */}
         <div
-          className={`relative h-64 w-full overflow-hidden ${
+          className={`relative w-full overflow-hidden ${
             isDark ? 'bg-neutral-900' : 'bg-gray-100'
           }`}
+          style={{ height: '240px' }}
         >
           <Image
             src={displayImage}
@@ -79,18 +81,18 @@ export default function CarCard({
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <h3 className="text-2xl font-bold mb-2">
+        <div className="p-6 flex-1 flex flex-col">
+          <h3 className="text-2xl font-bold mb-2 line-clamp-1">
             {car.brand} {car.model}
           </h3>
 
           {car.variant && (
-            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
+            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-4 line-clamp-1 min-h-[1.5rem]`}>
               {car.variant}
             </p>
           )}
 
-          <div className="grid grid-cols-2 gap-3 mb-6 text-sm">
+          <div className="grid grid-cols-2 gap-3 mb-6 text-sm flex-1">
             {car.manufacturing_year && (
               <Spec label="Year" value={car.manufacturing_year} />
             )}
@@ -139,8 +141,8 @@ export default function CarCard({
 function Spec({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-gray-500">{label}:</span>
-      <span className="font-medium">{value}</span>
+      <span className="text-gray-500 whitespace-nowrap">{label}:</span>
+      <span className="font-medium truncate">{value}</span>
     </div>
   );
 }
