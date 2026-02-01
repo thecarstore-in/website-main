@@ -24,8 +24,58 @@ export default function FeaturedCarsClient({ cars }: { cars: Car[] }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // On mobile, intercept vertical touch gestures so they scroll the page, not the horizontal container
   useEffect(() => {
-    // Skip setting up horizontal scroll on mobile
+    if (!isMobile) return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let startX = 0;
+    let startY = 0;
+    let lastY = 0;
+    let isVertical: boolean | null = null; // null = undecided
+
+    const onTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      lastY = startY;
+      isVertical = null;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - startX);
+      const dy = Math.abs(touch.clientY - startY);
+
+      // Decide direction once we have enough movement
+      if (isVertical === null && (dx > 5 || dy > 5)) {
+        isVertical = dy > dx;
+      }
+
+      if (isVertical) {
+        // Scroll the page by the delta since last move
+        const deltaY = touch.clientY - lastY;
+        window.scrollBy({ top: -deltaY, behavior: 'auto' });
+        lastY = touch.clientY;
+        e.preventDefault(); // stop the horizontal container from scrolling
+      }
+
+      // If horizontal, do nothing — let the container handle it natively
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [isMobile]);
+
+  // Desktop: convert vertical wheel into horizontal scroll
+  useEffect(() => {
     if (isMobile) return;
 
     let scrollTimeout: NodeJS.Timeout;
@@ -105,8 +155,8 @@ export default function FeaturedCarsClient({ cars }: { cars: Car[] }) {
           {/* Scrollable Container */}
           <div 
             ref={scrollContainerRef}
-            className="overflow-x-auto overflow-y-hidden pb-4 [&::-webkit-scrollbar]:hidden"
-            style={{ 
+            className="overflow-x-scroll md:overflow-x-auto overflow-y-visible md:overflow-y-hidden pb-4 [&::-webkit-scrollbar]:hidden"
+            style={isMobile ? undefined : { 
               scrollBehavior: isScrolling ? 'auto' : 'smooth',
               overscrollBehavior: 'contain'
             }}
