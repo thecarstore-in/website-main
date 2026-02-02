@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    unoptimized: true, // ⚡ Fixes 402 error - bypasses Vercel image optimization limit
     remotePatterns: [
       {
         protocol: 'https',
