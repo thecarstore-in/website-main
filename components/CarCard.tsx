@@ -34,24 +34,9 @@ export default function CarCard({
 
   const isDark = theme === 'dark';
 
-  // Cache-busting helper for JSDelivr images
-  const addCacheBuster = (url: string | undefined): string => {
-    if (!url) return '';
-    
-    // Only add cache buster for JSDelivr URLs to bypass their caching
-    if (url.includes('cdn.jsdelivr.net')) {
-      const separator = url.includes('?') ? '&' : '?';
-      // Use a daily timestamp to cache bust once per day
-      const today = new Date().toISOString().split('T')[0];
-      return `${url}${separator}v=${today}`;
-    }
-    
-    return url;
-  };
-
-  // Hover image logic with cache busting
-  const mainImage = addCacheBuster(car.images?.[0]);
-  const hoverImage = addCacheBuster(car.images?.[1]);
+  // Hover image logic
+  const mainImage = car.images?.[0];
+  const hoverImage = car.images?.[1];
   const displayImage = isHovered && hoverImage ? hoverImage : mainImage;
 
   return (
@@ -74,19 +59,17 @@ export default function CarCard({
           }`}
           style={{ height: '240px' }}
         >
-          {displayImage && (
-            <Image
-              src={displayImage}
-              alt={`${car.brand} ${car.model}`}
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className={`
-                object-cover transition-transform duration-500 ease-out
-                group-hover:scale-105
-              `}
-              loading="lazy"
-            />
-          )}
+          <Image
+            src={displayImage}
+            alt={`${car.brand} ${car.model}`}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className={`
+              object-cover transition-transform duration-500 ease-out
+              group-hover:scale-105
+            `}
+            loading="lazy"
+          />
 
           {isSold && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
