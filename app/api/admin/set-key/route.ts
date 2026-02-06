@@ -1,36 +1,33 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { isValidAdminKey } from '@/lib/supabase-admin';
 
-// HARDCODED ADMIN API KEY - Must match the one in admin page
-const ADMIN_API_KEY = 'your-secret-admin-key-here';
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { apiKey } = await request.json();
 
-    // Validate against hardcoded key
-    if (apiKey !== ADMIN_API_KEY) {
+    // Validate the key
+    if (!isValidAdminKey(apiKey)) {
       return NextResponse.json(
         { success: false, error: 'Invalid API key' },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
-    // Set session cookie (expires when browser closes)
+    // Set secure cookie (30 days expiry)
     const cookieStore = await cookies();
     cookieStore.set('admin_api_key', apiKey, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      // No maxAge = session cookie (deleted when browser closes)
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/'
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error setting admin key:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to process request' },
+      { success: false, error: 'Server error' },
       { status: 500 }
     );
   }
