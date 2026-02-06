@@ -19,7 +19,7 @@ export default function AdminSetupPage() {
     setError('');
 
     try {
-      // Set the cookie via API route
+      // Set the session storage (not persistent across browser restarts)
       const response = await fetch('/api/admin/set-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,6 +29,8 @@ export default function AdminSetupPage() {
       const data = await response.json();
 
       if (data.success) {
+        // Store in sessionStorage only (clears on tab close)
+        sessionStorage.setItem('admin_session', 'true');
         // Redirect to admin panel
         router.push('/admin-upload-secret');
       } else {
@@ -46,7 +48,7 @@ export default function AdminSetupPage() {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-2">Admin Access Setup</h1>
         <p className="text-gray-600 mb-6 text-sm">
-          Enter your admin API key once. It will be saved securely in your browser.
+          Enter your admin API key. You'll need to re-enter it each time you deploy or restart.
         </p>
 
         <div className="space-y-4">
@@ -81,7 +83,7 @@ export default function AdminSetupPage() {
         </div>
 
         <p className="text-xs text-gray-500 mt-6">
-          Your API key will be stored as a secure cookie. You won't need to enter it again unless you clear your browser data.
+          Your API key will only be stored for this session. 
         </p>
       </div>
     </div>

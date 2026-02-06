@@ -1,5 +1,5 @@
 import { headers, cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { supabaseAdmin, isValidAdminKey } from '@/lib/supabase-admin';
 import CarListingsTable from './CarListingsTable';
 import AddCarForm from './AddCarForm';
@@ -9,7 +9,10 @@ import EditCarForm from './EditCarModal';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const ITEMS_PER_PAGE = 10; // Adjust this based on your needs
+// HARDCODED ADMIN API KEY - Change this to your actual key
+const ADMIN_API_KEY = 'your-secret-admin-key-here';
+
+const ITEMS_PER_PAGE = 10;
 
 async function checkAdminAccess() {
   const headersList = await headers();
@@ -19,10 +22,11 @@ async function checkAdminAccess() {
   const apiKey = cookieStore.get('admin_api_key')?.value || 
                  headersList.get('x-admin-key');
   
-  console.log('API Key present:', !!apiKey); // Debug log
+  console.log('API Key present:', !!apiKey);
   
-  if (!isValidAdminKey(apiKey)) {
-    console.log('Access denied - Invalid API key'); // Debug log
+  // Check against hardcoded key
+  if (apiKey !== ADMIN_API_KEY) {
+    console.log('Access denied - Invalid API key');
     return false;
   }
   
