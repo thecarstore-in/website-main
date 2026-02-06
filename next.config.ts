@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.jsdelivr.net',
+        hostname: 'cdn.jsdelivr.ne',
         pathname: '/gh/**',
       },
     ],
