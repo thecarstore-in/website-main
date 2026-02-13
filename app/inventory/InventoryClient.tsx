@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Car } from '@/lib/types';
 import CarCard from '@/components/CarCard';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -54,7 +54,7 @@ export default function InventoryClient({
   const [showFilters, setShowFilters] = useState(false);
 
   // Build URL with filters
-  const buildFilterURL = () => {
+  const buildFilterURL = useCallback(() => {
     const params = new URLSearchParams();
     
     if (searchQuery) params.set('search', searchQuery);
@@ -72,28 +72,53 @@ export default function InventoryClient({
     
     const queryString = params.toString();
     return queryString ? `/inventory?${queryString}` : '/inventory';
-  };
+  }, [
+    searchQuery,
+    selectedBrand,
+    selectedCarType,
+    selectedFuelType,
+    selectedTransmission,
+    priceRange.min,
+    priceRange.max,
+    yearRange.min,
+    yearRange.max,
+    kmsRange.min,
+    kmsRange.max,
+    sortBy
+  ]);
 
   // Apply filters - updates URL which triggers server-side filtering
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     const url = buildFilterURL();
     router.push(url);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, [buildFilterURL, router]);
 
-  // Debounced search
+  // Debounced search - only for search query
   useEffect(() => {
     const timer = setTimeout(() => {
       applyFilters();
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, applyFilters]);
 
-  // Apply filters when any filter changes (except search which is debounced)
-  const handleFilterChange = () => {
+  // Apply filters immediately for all other filter changes
+  useEffect(() => {
     applyFilters();
-  };
+  }, [
+    selectedBrand,
+    selectedCarType,
+    selectedFuelType,
+    selectedTransmission,
+    sortBy,
+    applyFilters
+  ]);
+
+  // Apply filters on blur for range inputs
+  useEffect(() => {
+    applyFilters();
+  }, [priceRange, yearRange, kmsRange, applyFilters]);
 
   const resetFilters = () => {
     setSearchQuery('');
@@ -191,10 +216,7 @@ export default function InventoryClient({
               </label>
               <select
                 value={selectedBrand}
-                onChange={(e) => {
-                  setSelectedBrand(e.target.value);
-                  setTimeout(handleFilterChange, 0);
-                }}
+                onChange={(e) => setSelectedBrand(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
                 <option value="">All Brands</option>
@@ -211,10 +233,7 @@ export default function InventoryClient({
               </label>
               <select
                 value={selectedCarType}
-                onChange={(e) => {
-                  setSelectedCarType(e.target.value);
-                  setTimeout(handleFilterChange, 0);
-                }}
+                onChange={(e) => setSelectedCarType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
                 <option value="">All Types</option>
@@ -231,10 +250,7 @@ export default function InventoryClient({
               </label>
               <select
                 value={selectedFuelType}
-                onChange={(e) => {
-                  setSelectedFuelType(e.target.value);
-                  setTimeout(handleFilterChange, 0);
-                }}
+                onChange={(e) => setSelectedFuelType(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
                 <option value="">All Fuel Types</option>
@@ -251,10 +267,7 @@ export default function InventoryClient({
               </label>
               <select
                 value={selectedTransmission}
-                onChange={(e) => {
-                  setSelectedTransmission(e.target.value);
-                  setTimeout(handleFilterChange, 0);
-                }}
+                onChange={(e) => setSelectedTransmission(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
               >
                 <option value="">All Transmissions</option>
@@ -275,7 +288,6 @@ export default function InventoryClient({
                   placeholder="Min"
                   value={priceRange.min || ''}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
                 <input
@@ -283,7 +295,6 @@ export default function InventoryClient({
                   placeholder="Max"
                   value={priceRange.max || ''}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
               </div>
@@ -300,7 +311,6 @@ export default function InventoryClient({
                   placeholder="Min"
                   value={yearRange.min || ''}
                   onChange={(e) => setYearRange(prev => ({ ...prev, min: e.target.value }))}
-                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
                 <input
@@ -308,7 +318,6 @@ export default function InventoryClient({
                   placeholder="Max"
                   value={yearRange.max || ''}
                   onChange={(e) => setYearRange(prev => ({ ...prev, max: e.target.value }))}
-                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
               </div>
@@ -325,7 +334,6 @@ export default function InventoryClient({
                   placeholder="Min"
                   value={kmsRange.min || ''}
                   onChange={(e) => setKmsRange(prev => ({ ...prev, min: e.target.value }))}
-                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
                 <input
@@ -333,7 +341,6 @@ export default function InventoryClient({
                   placeholder="Max"
                   value={kmsRange.max || ''}
                   onChange={(e) => setKmsRange(prev => ({ ...prev, max: e.target.value }))}
-                  onBlur={handleFilterChange}
                   className="w-1/2 px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none"
                 />
               </div>
@@ -352,18 +359,13 @@ export default function InventoryClient({
           <label className="text-sm text-gray-600">Sort by:</label>
           <select
             value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value as SortOption);
-              setTimeout(handleFilterChange, 0);
-            }}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="px-3 py-2 border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
-            <option value="kms-low">Mileage: Low to High</option>
-            <option value="kms-high">Mileage: High to Low</option>
             <option value="year-new">Year: Newest First</option>
             <option value="year-old">Year: Oldest First</option>
           </select>
