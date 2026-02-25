@@ -34,6 +34,63 @@ export default function CarListingsTable({ cars, stats }: CarListingsTableProps)
     return matchesSearch && matchesSoldFilter;
   });
 
+  const getImageUrl = (img: any): string => {
+    try {
+      // Handle string type
+      if (typeof img === 'string' && img) {
+        const str = img as string;
+        const trimmed = str.trim();
+        
+        // Check if it's a JSON string (starts with { or [)
+        if (trimmed.charAt(0) === '{' || trimmed.charAt(0) === '[') {
+          try {
+            const parsed = JSON.parse(str);
+            // Check if the parsed result is still a string (double encoding)
+            if (typeof parsed === 'string') {
+              const doubleParsed = JSON.parse(parsed);
+              if (doubleParsed && typeof doubleParsed === 'object' && doubleParsed.url) {
+                return String(doubleParsed.url);
+              }
+              return '';
+            }
+            // Single encoding
+            if (parsed && typeof parsed === 'object' && parsed.url) {
+              return String(parsed.url);
+            }
+            return '';
+          } catch (parseErr) {
+            // If JSON parsing fails, return the string as-is (might be a plain URL)
+            return str;
+          }
+        }
+        // Plain URL string
+        return str;
+      }
+      
+      // Handle object type
+      if (img && typeof img === 'object') {
+        const url = (img as Record<string, any>).url;
+        if (url && typeof url === 'string') {
+          // Check if the url property is itself a JSON string
+          if (url.startsWith('{') || url.startsWith('[')) {
+            try {
+              const parsed = JSON.parse(url);
+              if (parsed && typeof parsed === 'object' && parsed.url) {
+                return String(parsed.url);
+              }
+            } catch {
+              return url;
+            }
+          }
+          return url;
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing image:', img, e);
+    }
+    return '';
+  };
+
   const formatPrice = (price: number | null) => {
     if (!price) return '-';
     return new Intl.NumberFormat('en-IN', {
@@ -43,7 +100,8 @@ export default function CarListingsTable({ cars, stats }: CarListingsTableProps)
     }).format(price);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
@@ -139,80 +197,90 @@ export default function CarListingsTable({ cars, stats }: CarListingsTableProps)
                   </td>
                 </tr>
               ) : (
-                filteredCars.map((car) => (
-                  <tr key={car.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={car.images[0]}
-                          alt={`${car.brand} ${car.model}`}
-                          className="w-16 h-16 object-cover rounded border border-gray-200"
-                        />
-                        <div>
-                          <p className="font-bold text-black">
-                            {car.brand} {car.model}
-                          </p>
-                          {car.variant && (
-                            <p className="text-sm text-gray-600">{car.variant}</p>
+                filteredCars.map((car) => {
+                  const firstImageUrl = car.images?.[0] ? getImageUrl(car.images[0]) : '';
+
+                  return (
+                    <tr key={car.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          {firstImageUrl ? (
+                            <img
+                              src={firstImageUrl}
+                              alt={`${car.brand} ${car.model}`}
+                              className="w-16 h-16 object-cover rounded border border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
+                              <span className="text-xs text-gray-500">No Image</span>
+                            </div>
                           )}
-                          {car.registration_number && (
-                            <p className="text-xs text-gray-500 font-mono">
-                              {car.registration_number}
+                          <div>
+                            <p className="font-bold text-black">
+                              {car.brand} {car.model}
                             </p>
+                            {car.variant && (
+                              <p className="text-sm text-gray-600">{car.variant}</p>
+                            )}
+                            {car.registration_number && (
+                              <p className="text-xs text-gray-500 font-mono">
+                                {car.registration_number}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-sm">
+                          <p className="text-black font-medium">
+                            {car.manufacturing_year || '-'}
+                          </p>
+                          <p className="text-gray-600">
+                            {car.kms_driven
+                              ? `${car.kms_driven.toLocaleString('en-IN')} km`
+                              : '-'}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="font-bold text-black">
+                          {formatPrice(car.expected_price)}
+                        </p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col gap-2">
+                          {car.is_sold ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 w-fit">
+                              Sold
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 w-fit">
+                              Available
+                            </span>
+                          )}
+                          {car.is_featured && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 w-fit">
+                              Featured
+                            </span>
                           )}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="text-sm">
-                        <p className="text-black font-medium">
-                          {car.manufacturing_year || '-'}
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-sm text-gray-600">
+                          {formatDate(car.created_at)}
                         </p>
-                        <p className="text-gray-600">
-                          {car.kms_driven
-                            ? `${car.kms_driven.toLocaleString('en-IN')} km`
-                            : '-'}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="font-bold text-black">
-                        {formatPrice(car.expected_price)}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col gap-2">
-                        {car.is_sold ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 w-fit">
-                            Sold
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 w-fit">
-                            Available
-                          </span>
-                        )}
-                        {car.is_featured && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 w-fit">
-                            Featured
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="text-sm text-gray-600">
-                        {car.created_at ? formatDate(car.created_at) : '-'}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <a
-                        href={`/admin-upload-secret?view=edit&id=${car.id}`}
-                        className="inline-block px-4 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-                      >
-                        Edit
-                      </a>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <a
+                          href={`/admin-upload-secret?view=edit&id=${car.id}`}
+                          className="inline-block px-4 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
+                        >
+                          Edit
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

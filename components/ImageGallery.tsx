@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { resolveImageUrls } from '@/lib/imageResolver';
 
 interface ImageGalleryProps {
-  images: string[];
+  images: any[];
   carName: string;
   isSold: boolean;
 }
@@ -12,12 +13,23 @@ interface ImageGalleryProps {
 export default function ImageGallery({ images, carName, isSold }: ImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(0);
 
+  // Normalize all images to clean URLs
+  const imageUrls = resolveImageUrls(images);
+
+  if (imageUrls.length === 0) {
+    return (
+      <div className="w-full h-96 md:h-[500px] lg:h-[600px] bg-gray-200 border border-black flex items-center justify-center">
+        <span className="text-gray-600">No images available</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="relative w-full h-96 md:h-[500px] lg:h-[600px] bg-gray-100 border border-black">
+      <div className="relative w-full h-96 md:h-[500px] lg:h-[600px] bg-gray-100 border border-black overflow-hidden">
         <Image
-          src={images[selectedImage]}
+          src={imageUrls[selectedImage]}
           alt={`${carName} - Image ${selectedImage + 1}`}
           fill
           className="object-cover"
@@ -34,14 +46,14 @@ export default function ImageGallery({ images, carName, isSold }: ImageGalleryPr
 
         {/* Image Counter */}
         <div className="absolute bottom-4 right-4 bg-black bg-opacity-75 text-white px-3 py-1 text-sm">
-          {selectedImage + 1} / {images.length}
+          {selectedImage + 1} / {imageUrls.length}
         </div>
 
         {/* Navigation Arrows */}
-        {images.length > 1 && (
+        {imageUrls.length > 1 && (
           <>
             <button
-              onClick={() => setSelectedImage(prev => (prev === 0 ? images.length - 1 : prev - 1))}
+              onClick={() => setSelectedImage(prev => (prev === 0 ? imageUrls.length - 1 : prev - 1))}
               className="text-black absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
               aria-label="Previous image"
             >
@@ -50,7 +62,7 @@ export default function ImageGallery({ images, carName, isSold }: ImageGalleryPr
               </svg>
             </button>
             <button
-              onClick={() => setSelectedImage(prev => (prev === images.length - 1 ? 0 : prev + 1))}
+              onClick={() => setSelectedImage(prev => (prev === imageUrls.length - 1 ? 0 : prev + 1))}
               className="text-black absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
               aria-label="Next image"
             >
@@ -63,9 +75,9 @@ export default function ImageGallery({ images, carName, isSold }: ImageGalleryPr
       </div>
 
       {/* Thumbnail Grid */}
-      {images.length > 1 && (
+      {imageUrls.length > 1 && (
         <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4">
-          {images.map((image, index) => (
+          {imageUrls.map((imageUrl, index) => (
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
@@ -76,7 +88,7 @@ export default function ImageGallery({ images, carName, isSold }: ImageGalleryPr
               }`}
             >
               <Image
-                src={image}
+                src={imageUrl}
                 alt={`${carName} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"

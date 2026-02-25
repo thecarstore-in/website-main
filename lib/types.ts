@@ -1,3 +1,8 @@
+export interface CarImage {
+  url: string;
+  public_id?: string; // Optional for legacy jsDelivr images
+}
+
 export interface Car {
   id: string;
   brand: string;
@@ -15,8 +20,9 @@ export interface Car {
   car_type: string | null;
   is_featured: boolean;
   is_sold: boolean;
-  images: string[];
+  sold_at: string | null;
   created_at: string;
+  images: CarImage[];
 }
 
 export interface CarFilters {

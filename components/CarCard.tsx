@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Car } from '@/lib/types';
+import { resolveImageUrl } from '@/lib/imageResolver';
 
 interface CarCardProps {
   car: Car;
@@ -35,8 +36,8 @@ export default function CarCard({
   const isDark = theme === 'dark';
 
   // Hover image logic
-  const mainImage = car.images?.[0];
-  const hoverImage = car.images?.[1];
+  const mainImage = car.images?.[0] ? resolveImageUrl(car.images[0]) : '';
+  const hoverImage = car.images?.[1] ? resolveImageUrl(car.images[1]) : '';
   const displayImage = isHovered && hoverImage ? hoverImage : mainImage;
 
   return (
@@ -59,17 +60,23 @@ export default function CarCard({
           }`}
           style={{ height: '240px' }}
         >
-          <Image
-            src={displayImage}
-            alt={`${car.brand} ${car.model}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className={`
-              object-cover transition-transform duration-500 ease-out
-              group-hover:scale-105
-            `}
-            loading="lazy"
-          />
+          {displayImage ? (
+            <Image
+              src={displayImage}
+              alt={`${car.brand} ${car.model}`}
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className={`
+                object-cover transition-transform duration-500 ease-out
+                group-hover:scale-105
+              `}
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600">
+              No image
+            </div>
+          )}
 
           {isSold && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
