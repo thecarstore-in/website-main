@@ -64,22 +64,22 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2"
+            className="md:hidden p-2 "
             aria-label="Toggle menu"
           >
             <div className="w-6 h-5 flex flex-col justify-between">
               <span
-                className={`block h-0.5 w-full bg-gray-100 transition-transform duration-300 ${
+                className={`block h-0.5 w-full bg-gray-900 transition-transform duration-300 ${
                   isMenuOpen ? 'rotate-45 translate-y-2' : ''
                 }`}
               />
               <span
-                className={`block h-0.5 w-full bg-gray-100 transition-opacity duration-300 ${
+                className={`block h-0.5 w-full bg-gray-900 transition-opacity duration-300 ${
                   isMenuOpen ? 'opacity-0' : ''
                 }`}
               />
               <span
-                className={`block h-0.5 w-full bg-gray-100 transition-transform duration-300 ${
+                className={`block h-0.5 w-full bg-gray-900 transition-transform duration-300 ${
                   isMenuOpen ? '-rotate-45 -translate-y-2' : ''
                 }`}
               />
@@ -96,7 +96,7 @@ export default function Navbar() {
                   <button
                     key={section}
                     onClick={() => scrollToSection(section)}
-                    className="text-left text-base font-bold text-gray-100 hover:text-gray-400 transition-colors py-2"
+                    className="text-left text-base font-bold text-gray-900 hover:text-gray-400 transition-colors py-2"
                   >
                     {section === 'inventory'
                       ? 'All Cars'
